@@ -1,17 +1,17 @@
 <script>
-    import { tick } from "svelte";
     import { Input, Label, Button, Select } from "flowbite-svelte";
     import { onMount } from "svelte";
 
     import { MultiSelect } from "flowbite-svelte";
     import "intl-tel-input/build/css/intlTelInput.css";
     import intlTelInput from "intl-tel-input";
+
     export let file;
     export let iti;
     export let appData;
     export let id;
     export let name;
-    export let address;
+    // export let address;
     export let phone = "";
     export let website;
     export let currencyOptions;
@@ -25,8 +25,13 @@
     export let preferredCountryCode = [];
     export let preferredCountryCode1 = [];
     export let preferredCountries = [];
-    
-
+    export let cityName;
+    export let postCode;
+    export let addressLine;
+    export let regionName;
+    export let countryCode;
+    export let latitude;
+    export let longitude;
     export let logo;
     export let countries = [];
     export let selectedCodes = [];
@@ -45,31 +50,34 @@
             const data = await response.json();
             console.log(data, "data");
 
-            (logo = data.logo.url),
-                (id = data.id),
-                (name = data.name),
-                (address = {
-                    addressLine: data.address.addressLine,
-                    cityName: data.address.cityName,
-                    regionName: data.address.cityRegion,
-                    postCode: data.address.postCode,
-                    countryCode: data.address.countryCode,
-                    latitude: data.address.latitude,
-                    longitude: data.address.longitude,
-                }),
-                (selectedCountry = data.address.countryCode);
+            logo = data.logo.url,
+                id = data.id,
+                name = data.name,
+                
+                    addressLine= data.address.addressLine,
+                    cityName= data.address.cityName,
+                    regionName= data.address.cityRegion,
+                    postCode= data.address.postCode,
+                    countryCode= data.address.countryCode,
+                    latitude= data.address.latitude,
+                    longitude= data.address.longitude,
+                
+                
+            
+            selectedCountry = data.address.countryCode;
+            postCode = data.address.postCode;
             phone = data.phone;
-            (website = data.website),
-                (currencyCode = data.currencyCode.code),
-                (preferredDateformat = data.preferredDateFormat),
-                (timeZone = data.timeZone);
+            website = data.website,
+                currencyCode = data.currencyCode.code,
+                preferredDateformat = data.preferredDateFormat,
+                timeZone = data.timeZone;
             preferredCountryCode = data.mobilePreferences.preferredCountryCode;
             preferredCountries = data.mobilePreferences.preferredCountries;
 
             selectedLabels = preferredCountries.split(",");
             preferredCountryCode1 = preferredCountryCode.toUpperCase();
 
-            iti.setNumber(phone);
+            // iti.setNumber(phone);
         } catch (error) {
             console.error("Error fetching data:", error);
         }
@@ -77,8 +85,6 @@
 
     onMount(async () => {
         await fetchData();
-
-        await tick();
 
         fetchCountryData();
 
@@ -96,6 +102,7 @@
             initialCountry: preferredCountryCode,
             preferredCountries: selectedLabels,
         });
+        iti.setNumber(phone);
     });
 
     const fetchCountryData = async () => {
@@ -204,11 +211,11 @@
             errors.name = "Company Name is required";
         }
 
-        if (!address.cityName || address.cityName.trim() === "") {
+        if (!cityName || cityName.trim() === "") {
             errors.cityName = "City Name is required";
         }
-        if (!address.countryCode || address.countryCode.trim() === "") {
-            errors.countryCode = "Country Name is required";
+        if (!selectedCountry || selectedCountry.trim() === "") {
+            errors.selectedCountry = "Country Name is required";
         }
 
         const phoneRegex = /^[0-9+]+$/;
@@ -241,7 +248,16 @@
             logo,
             id,
             name,
-            address,
+
+            address: {
+                addressLine: addressLine,
+                cityName: cityName,
+                regionName: regionName,
+                postCode: postCode,
+                countryCode: selectedCountry,
+                latitude: latitude,
+                longitude: longitude,
+            },
             phone,
             website,
             currencyCode: {
@@ -383,20 +399,20 @@
                     {/if}
                 </div>
 
-                <!-- <div class="mb-3">
+                <div class="mb-3">
                     <Label for="cityName" class="mb-2"
                         >City Name<span class="required">*</span></Label
                     >
                     <Input
                         type="text"
                         id="cityName"
-                        bind:value={address.cityName}
+                        bind:value={cityName}
                         placeholder="CityName"
                     />
                     {#if showValidation && errors.cityName}
                         <p class="error">{errors.cityName}</p>
                     {/if}
-                </div> -->
+                </div>
                 <div class="mb-3">
                     <Label for="country" class="mb-2"
                         >Country<span class="required">*</span></Label
@@ -404,10 +420,10 @@
                     <Select
                         class="mt-2"
                         items={countryOptions}
-                        bind:value={address.countryCode}
+                        bind:value={selectedCountry}
                     />
-                    {#if showValidation && errors.countryCode}
-                        <p class="error">{errors.countryCode}</p>
+                    {#if showValidation && errors.selectedCountry}
+                        <p class="error">{errors.selectedCountry}</p>
                     {/if}
                 </div>
                 <div class="mb-3">
@@ -415,7 +431,7 @@
                     <Input
                         type="text"
                         id="postCode"
-                        bind:value={address.postCode}
+                        bind:value={postCode}
                         placeholder="Post Code"
                     />
                 </div>
@@ -567,13 +583,21 @@
         color: red;
         margin-left: 2px;
     }
+    .container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+
     .form-container {
         width: 800px;
-        margin-top: 10px;
-    }
-    .container {
-        display: grid;
-        place-items: center;
-        height: 100vh;
+        /* padding-left: 50px;
+		padding-right:50px; */
+        /* padding: 50px; */
+        border: 1px solid #f9f9f9;
+        border-radius: 5px;
+        background-color: #f9f9f9;
+        margin-top: 300px;
     }
 </style>
